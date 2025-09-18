@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chatbot Widget</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Hide scrollbar but keep scrolling */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none; /* IE/Edge */
+        scrollbar-width: none; /* Firefox */
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <!-- Chatbot Container -->
+    <div
+      class="w-96 h-[400px] flex flex-col rounded-2xl shadow-2xl overflow-hidden bg-white"
+    >
+      <!-- Header -->
+      <div class="bg-blue-600 text-white text-center py-3 font-semibold">
+        🤖 Chatbot
+      </div>
+
+      <!-- Messages -->
+      <div
+        id="messages"
+        class="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3 text-sm text-gray-800 no-scrollbar"
+      >
+        <div class="bg-blue-100 px-4 py-2 rounded-lg max-w-[80%]">
+          Hello 👋 How can I help you today?
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="border-t flex items-center bg-white px-3 py-2">
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="Type a message..."
+          class="flex-1 text-sm px-3 py-2 outline-none"
+        />
+        <button
+          id="sendBtn"
+          class="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+        >
+          Send
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const messages = document.getElementById("messages");
+      const input = document.getElementById("chatInput");
+      const sendBtn = document.getElementById("sendBtn");
+
+      function addMessage(text, sender) {
+        const msg = document.createElement("div");
+        msg.className =
+          "px-4 py-2 rounded-lg max-w-[80%] break-words " +
+          (sender === "user"
+            ? "bg-blue-600 text-white ml-auto"
+            : "bg-blue-100 text-gray-800");
+        msg.innerText = text;
+        messages.appendChild(msg);
+        messages.scrollTop = messages.scrollHeight; // auto scroll
+      }
+
+      sendBtn.addEventListener("click", () => {
+        const text = input.value.trim();
+        if (!text) return;
+        addMessage(text, "user");
+        input.value = "";
+
+        // Simulated bot reply (replace with API call)
+        setTimeout(() => {
+          addMessage("You said: " + text, "bot");
+        }, 600);
+      });
+
+      input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendBtn.click();
+      });
+    </script>
+  </body>
+</html>
