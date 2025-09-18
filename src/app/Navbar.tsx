@@ -3,7 +3,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
 const Navbar = () => {
   const pathname = usePathname();
