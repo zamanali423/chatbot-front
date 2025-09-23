@@ -1,5 +1,6 @@
 // frontend/public/widget.js
 (function () {
+  const websiteId = document.currentScript.getAttribute("data-website-id");
   // Create floating button
   const button = document.createElement("div");
   button.id = "chatbot-toggle-btn";
@@ -30,7 +31,7 @@
       // Open chatbot
       iframe = document.createElement("iframe");
       iframe.id = "chatbot-iframe";
-      iframe.src = "http://localhost:3000/widget.html"; // Change to production URL later
+      iframe.src = `http://localhost:3000/widget.html?websiteId=${websiteId}`; // Change to production URL later
       iframe.style.position = "fixed";
       iframe.style.bottom = "90px"; // above button
       iframe.style.right = "20px";

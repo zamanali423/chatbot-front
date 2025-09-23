@@ -13,6 +13,36 @@
         -ms-overflow-style: none; /* IE/Edge */
         scrollbar-width: none; /* Firefox */
       }
+
+      /* Typing dots animation */
+      .typing {
+        display: flex;
+        gap: 4px;
+      }
+      .typing span {
+        width: 6px;
+        height: 6px;
+        background: #4b5563; /* gray-700 */
+        border-radius: 50%;
+        display: inline-block;
+        animation: bounce 1.4s infinite;
+      }
+      .typing span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes bounce {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.6);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
     </style>
   </head>
   <body class="bg-gray-100 flex items-center justify-center min-h-screen">
@@ -29,11 +59,7 @@
       <div
         id="messages"
         class="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3 text-sm text-gray-800 no-scrollbar"
-      >
-        <div class="bg-blue-100 px-4 py-2 rounded-lg max-w-[80%]">
-          Hello 👋 How can I help you today?
-        </div>
-      </div>
+      ></div>
 
       <!-- Input -->
       <div class="border-t flex items-center bg-white px-3 py-2">
@@ -53,34 +79,148 @@
     </div>
 
     <script>
+      const params = new URLSearchParams(window.location.search);
+      const websiteId = params.get("websiteId") || "default-site";
       const messages = document.getElementById("messages");
       const input = document.getElementById("chatInput");
       const sendBtn = document.getElementById("sendBtn");
 
+      // Add a message
       function addMessage(text, sender) {
         const msg = document.createElement("div");
-        msg.className =
-          "px-4 py-2 rounded-lg max-w-[80%] break-words " +
-          (sender === "user"
-            ? "bg-blue-600 text-white ml-auto"
-            : "bg-blue-100 text-gray-800");
+
+        if (sender === "user") {
+          msg.className =
+            "px-4 py-2 rounded-lg max-w-[80%] break-words bg-blue-600 text-white ml-auto";
+        } else if (sender === "system") {
+          msg.className =
+            "px-4 py-2 rounded-lg max-w-[90%] break-words bg-gray-200 text-gray-700 text-xs italic mx-auto text-center";
+        } else {
+          // bot
+          msg.className =
+            "px-4 py-2 rounded-lg max-w-[80%] break-words bg-blue-100 text-gray-800";
+        }
+
         msg.innerText = text;
         messages.appendChild(msg);
-        messages.scrollTop = messages.scrollHeight; // auto scroll
+        messages.scrollTop = messages.scrollHeight;
+        return msg;
       }
 
+      // Typing indicator
+      function addTypingIndicator() {
+        const wrapper = document.createElement("div");
+        wrapper.className =
+          "px-4 py-2 rounded-lg max-w-[80%] bg-blue-100 text-gray-800 flex items-center";
+        wrapper.innerHTML = `
+          <div class="typing">
+            <span></span><span></span><span></span>
+          </div>`;
+        messages.appendChild(wrapper);
+        messages.scrollTop = messages.scrollHeight;
+        return wrapper;
+      }
+
+      async function loadPreviousChats() {
+        try {
+          const res = await fetch(
+            `http://localhost:8080/openai/chat-history?websiteId=${websiteId}`
+          );
+          if (!res.ok) throw new Error("Failed to fetch chats");
+          const data = await res.json();
+          data.forEach((chat) => {
+            addMessage(chat.userMessage, "user");
+            addMessage(chat.aiResponse, "assistant");
+          });
+        } catch (err) {
+          console.error("Error loading previous chats:", err);
+        }
+      }
+
+      // Streaming Chat
+      async function streamChat(userMessage) {
+        const typingEl = addTypingIndicator();
+
+        try {
+          const response = await fetch(
+            `http://localhost:8080/openai/chat-stream?websiteId=${websiteId}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: userMessage }),
+            }
+          );
+
+          if (!response.ok || !response.body) {
+            throw new Error("Failed to connect to server");
+          }
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let buffer = "";
+          let fullText = "";
+
+          // Replace typing indicator with bot message container
+          const botMsgElement = document.createElement("div");
+          botMsgElement.className =
+            "px-4 py-2 rounded-lg max-w-[80%] bg-blue-100 text-gray-800 break-words";
+          messages.replaceChild(botMsgElement, typingEl);
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              buffer += decoder.decode();
+              break;
+            }
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              if (line.trim() === "data: [DONE]") {
+                return;
+              }
+              if (line.startsWith("data:")) {
+                const dataStr = line.replace(/^data:\s*/, "").trim();
+                try {
+                  const parsed = JSON.parse(dataStr);
+                  // const delta = parsed.choices?.[0]?.delta;
+                  if (parsed?.role === "system") {
+                    addMessage(parsed.content || "System message", "system");
+                  } else if (parsed.role === "assistant" && parsed?.content) {
+                    fullText += parsed.content;
+                    botMsgElement.innerText = fullText;
+                    messages.scrollTop = messages.scrollHeight;
+                  }
+                } catch (err) {
+                  console.log("Partial JSON skipped:", dataStr);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Stream error:", err);
+          messages.replaceChild(
+            addMessage("⚠️ Error receiving response.", "bot"),
+            typingEl
+          );
+        }
+      }
+
+      // Initial system greeting
+      addMessage("🤖 I am AI Assistant. How can I help you?", "system");
+      // Load previous chats on page load
+      loadPreviousChats();
+      // Send button
       sendBtn.addEventListener("click", () => {
         const text = input.value.trim();
         if (!text) return;
         addMessage(text, "user");
         input.value = "";
-
-        // Simulated bot reply (replace with API call)
-        setTimeout(() => {
-          addMessage("You said: " + text, "bot");
-        }, 600);
+        streamChat(text);
       });
 
+      // Enter key
       input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") sendBtn.click();
       });

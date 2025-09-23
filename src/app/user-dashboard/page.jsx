@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ScrapingForm from "./components/ScrapingForm";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -10,6 +10,11 @@ import Cookies from "js-cookie";
 export default function Dashboard() {
   const [openForm, setOpenForm] = useState(false);
   const [showIntegrateLink, setShowIntegrateLink] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const token = Cookies.get("token");
   const { data: scrapedData, isLoading } = useQuery({
@@ -32,12 +37,22 @@ export default function Dashboard() {
     setShowIntegrateLink(true);
   };
 
-  if (isLoading)
+  // ⛔ Avoid SSR mismatch
+  if (!mounted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="animate-spin" size={40} />
       </div>
     );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin" size={40} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex">

@@ -4,6 +4,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Login() {
   const router = useRouter();
@@ -146,10 +147,13 @@ export default function Login() {
 
       {/* Right: Image */}
       <div className="hidden md:block md:w-1/2 bg-gray-100">
-        <img
-          src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=1350&q=80"
-          alt="Register illustration"
+        <Image
+          src="/assets/images/login_page.webp"
+          alt="Login illustration"
+          width={800}
+          height={800}
           className="w-full h-full object-cover"
+          priority
         />
       </div>
     </div>

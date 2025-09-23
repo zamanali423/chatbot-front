@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import Providers from "./_app";
+import ChatbotLoader from "./ChatbotLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,14 +29,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#EEF2F6] text-[#212529]`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#EEF2F6] text-[#212529] cz-shortcut-listen="true"`}
       >
         <Navbar />
         <main className="min-h-screen">
           <Providers>{children}</Providers>
         </main>
         <Footer />
-        <script src={`${process.env.NEXT_PUBLIC_CHATBOT_URL}/widget.js`} async></script>
+        <ChatbotLoader />
       </body>
     </html>
   );

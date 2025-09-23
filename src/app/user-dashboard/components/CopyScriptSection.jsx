@@ -7,7 +7,11 @@ export default function CopyScriptSection({
 }) {
   const [copied, setCopied] = useState(false);
 
-  const scriptTag = `<script src="${process.env.NEXT_PUBLIC_CHATBOT_URL}/widget.js" async></script>`;
+  const scriptTag = `<script src="${
+    process.env.NEXT_PUBLIC_CHATBOT_URL
+  }/widget.js" data-website-id="${
+    scrapedData[scrapedData.length - 1].url
+  }" async></script>`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptTag);
