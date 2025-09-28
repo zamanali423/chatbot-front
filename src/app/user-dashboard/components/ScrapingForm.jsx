@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 
 export default function ScrapingForm({ setOpenForm }) {
   const [website, setWebsite] = useState("");
+  const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -14,7 +15,7 @@ export default function ScrapingForm({ setOpenForm }) {
     const token = Cookies.get("token");
     try {
       const { data, status } = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/scraper?url=${website}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/scraper?url=${website}&category=${category}`,
         {
           withCredentials: true,
           headers: { Authorization: `Bearer ${token}` },
@@ -61,6 +62,17 @@ export default function ScrapingForm({ setOpenForm }) {
                 onChange={(e) => setWebsite(e.target.value)}
                 required
                 placeholder="https://example.com"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              />
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required
+                placeholder="e.g e-commerce,education"
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </div>

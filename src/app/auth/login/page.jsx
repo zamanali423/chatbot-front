@@ -44,7 +44,8 @@ export default function Login() {
         localStorage.setItem("user", JSON.stringify(data.user));
         // Fire a storage event manually to update state without refresh
         window.dispatchEvent(new Event("storage"));
-        router.push("/user-dashboard");
+        // router.push("/user-dashboard");
+        router.push("/pages/main");
       } else {
         setErrorMsg(data?.message || "Login failed. Please try again.");
       }
