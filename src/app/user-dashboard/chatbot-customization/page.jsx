@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 
+
 export default function ChatbotCustomization() {
   const [messages, setMessages] = useState(["I have a question"]);
   const [welcomeMsg, setWelcomeMsg] = useState("👋 Hi! How can we help?");
