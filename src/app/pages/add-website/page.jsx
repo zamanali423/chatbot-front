@@ -2,7 +2,7 @@
 import React from "react";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "@/components/Sidebar";
 
 export default function Add_Website() {
   const router = useRouter();

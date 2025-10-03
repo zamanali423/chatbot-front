@@ -9,7 +9,7 @@ import {
   Send,
   MessageCircle,
 } from "lucide-react";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "@/components/Sidebar";
 import CopyBoxPage from "../components/CopyBoxPage";
 
 export default function CustomizeWidget() {
