@@ -1,45 +1,69 @@
+"use client";
 import { useState } from "react";
+import { X, Copy } from "lucide-react";
 
 export default function CopyScriptSection({
   showIntegrateLink,
-  scrapedData,
   setShowIntegrateLink,
+  websiteUrl,
 }) {
   const [copied, setCopied] = useState(false);
 
-  const scriptTag = `<script src="${
-    process.env.NEXT_PUBLIC_CHATBOT_URL
-  }/widget.js" data-website-id="${
-    scrapedData[scrapedData.length - 1]?.url
-  }" async></script>`;
+  const scriptTag = `<script src="${process.env.NEXT_PUBLIC_CHATBOT_URL}/widget.js" data-website-id="${websiteUrl}" async></script>`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(scriptTag);
     setCopied(true);
 
-    // hide after 2s
+    // hide popup after 2s
     setTimeout(() => {
       setCopied(false);
       setShowIntegrateLink(false);
     }, 2000);
   };
 
-  if (!showIntegrateLink || !scrapedData?.length) return null;
+  if (!showIntegrateLink || !websiteUrl) return null;
 
   return (
-    <p className="text-center text-[#5f6578] font-semibold mb-6">
-      Copy this link and paste in your website:{" "}
-      <span
-        className="relative text-[#2D5BE3] bg-gray-200 px-2 py-1 rounded cursor-pointer"
-        onClick={handleCopy}
-      >
-        {scriptTag}
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Background Blur */}
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={() => setShowIntegrateLink(false)}
+      />
+
+      {/* Popup Card */}
+      <div className="relative z-50 w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl animate-fadeIn">
+        {/* Close Button */}
+        <button
+          onClick={() => setShowIntegrateLink(false)}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+        >
+          <X size={20} />
+        </button>
+
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+          Copy & Paste this Script into your Website
+        </h2>
+
+        {/* Script Box */}
+        <div className="flex items-center justify-between bg-gray-100 p-3 rounded-lg border border-gray-300">
+          <code className="text-xs text-gray-700 break-all">{scriptTag}</code>
+          <button
+            onClick={handleCopy}
+            className="ml-2 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition"
+          >
+            <Copy size={16} /> Copy
+          </button>
+        </div>
+
+        {/* Copied Toast */}
         {copied && (
-          <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded shadow">
-            Copied!
-          </span>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs px-3 py-2 rounded-lg shadow-md animate-bounce">
+            ✅ Copied Successfully!
+          </div>
         )}
-      </span>
-    </p>
+      </div>
+    </div>
   );
 }

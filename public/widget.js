@@ -1,10 +1,10 @@
 // frontend/public/widget.js
 (function () {
   const websiteId = document.currentScript.getAttribute("data-website-id");
-  // Create floating button
-  const button = document.createElement("div");
-  button.id = "chatbot-toggle-btn";
-  button.innerHTML = `
+  const customization = localStorage.getItem("chatbot-customization");
+  const customizationData = customization ? JSON.parse(customization) : null;
+  let bgColor = "#2D5BE3";
+  let logoImage = `
   <svg xmlns="http://www.w3.org/2000/svg" 
        fill="none" viewBox="0 0 24 24" 
        stroke="currentColor" stroke-width="2" 
@@ -12,14 +12,26 @@
     <path stroke-linecap="round" stroke-linejoin="round" 
           d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8-1.43 0-2.78-.3-3.95-.84L3 20l1.13-3.39C3.42 15.39 3 13.74 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
   </svg>
-`; // You can replace with icon/image
+`;
+  if (customizationData && customizationData.websiteId === websiteId) {
+    bgColor = customizationData.bgColor || bgColor;
+    logoImage = customizationData.logoImage || logoImage;
+  }
+
+  // Prevent duplicate button
+  if (document.getElementById("chatbot-toggle-btn")) return;
+
+  // Create floating button
+  const button = document.createElement("div");
+  button.id = "chatbot-toggle-btn";
+  button.innerHTML = logoImage;
   button.style.position = "fixed";
   button.style.bottom = "20px";
   button.style.right = "20px";
   button.style.width = "50px";
   button.style.height = "50px";
   button.style.borderRadius = "50%";
-  button.style.backgroundColor = "#2D5BE3"; // Deep Blue
+  button.style.backgroundColor = bgColor;
   button.style.color = "white";
   button.style.display = "flex";
   button.style.alignItems = "center";

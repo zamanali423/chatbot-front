@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Providers from "./_app";
 import ChatbotLoader from "./components/ChatbotLoader";
+import ToastProvider from "../lib/react-toastify/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,11 +33,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#EEF2F6] text-[#212529] cz-shortcut-listen="true"`}
       >
         <Navbar />
+        <ToastProvider />
         <main className="min-h-screen">
           <Providers>{children}</Providers>
         </main>
         <Footer />
-        <ChatbotLoader />
+        {/* <ChatbotLoader /> */}
       </body>
     </html>
   );

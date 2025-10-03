@@ -3,14 +3,16 @@ import { useState } from "react";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import Cookies from "js-cookie";
+import { useQueryClient } from "@tanstack/react-query";
 
-export default function ScrapingForm({ setOpenForm }) {
+export default function ScrapingForm({ setOpenForm, setLoading }) {
   const [website, setWebsite] = useState("");
   const [category, setCategory] = useState("");
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setOpenForm(false);
     setLoading(true);
     const token = Cookies.get("token");
     try {
@@ -22,7 +24,7 @@ export default function ScrapingForm({ setOpenForm }) {
         }
       );
       console.log(data, status);
-      setOpenForm(false);
+      queryClient.invalidateQueries(["scrapedData"]);
     } catch (error) {
       console.log(error);
     } finally {
@@ -82,6 +84,12 @@ export default function ScrapingForm({ setOpenForm }) {
               <button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg shadow-md transition"
+              >
+                Start Integration
+              </button>
+              {/* <button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg shadow-md transition"
                 disabled={loading}
               >
                 {loading ? (
@@ -89,7 +97,7 @@ export default function ScrapingForm({ setOpenForm }) {
                 ) : (
                   "Start Integration"
                 )}
-              </button>
+              </button> */}
             </div>
           </form>
         </div>

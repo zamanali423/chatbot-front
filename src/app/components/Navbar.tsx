@@ -38,7 +38,9 @@ const Navbar = () => {
     { href: "/docs", label: "Docs" },
   ];
 
-  const dashboardLinks = [{ href: "/user-dashboard", label: "Dashboard" }];
+  const dashboardLinks = [
+    { href: "/user-dashboard", label: "Dashboard" },
+  ];
 
   const handleLogout = () => {
     setDropdownOpen(false);

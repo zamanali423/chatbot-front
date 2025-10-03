@@ -55,8 +55,10 @@
       class="w-96 h-[400px] flex flex-col rounded-2xl shadow-2xl overflow-hidden bg-white"
     >
       <!-- Header -->
-      <div class="bg-blue-600 text-white text-center py-3 font-semibold">
-        🤖 Chatbot
+      <div
+        class="bg-blue-600 text-white text-center py-3 font-semibold"
+        id="chatbotName"
+      >
       </div>
 
       <!-- Messages -->
@@ -83,14 +85,28 @@
         </button>
       </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
       const params = new URLSearchParams(window.location.search);
       const websiteId = params.get("websiteId") || "default-site";
       const messages = document.getElementById("messages");
       const input = document.getElementById("chatInput");
       const sendBtn = document.getElementById("sendBtn");
-
+      const chatbotName = document.getElementById("chatbotName");
+      const customization = localStorage.getItem("chatbot-customization");
+      const customizationData = customization
+        ? JSON.parse(customization)
+        : null;
+      console.log(customizationData);
+      let welcomeMsg =
+        customizationData?.websiteUrl == websiteId
+          ? customizationData.welcomeMsg
+          : "👋 Hi! How can we help you?";
+      let getChatbotName =
+        customizationData?.websiteUrl == websiteId
+          ? customizationData.chatbotName
+          : "Chatbot";
+      chatbotName.innerText = getChatbotName;
       // Add a message
       function addMessage(text, sender) {
         const msg = document.createElement("div");
@@ -98,16 +114,19 @@
         if (sender === "user") {
           msg.className =
             "px-4 py-2 rounded-lg max-w-[80%] break-words bg-blue-600 text-white ml-auto";
+          msg.innerText = text;
         } else if (sender === "system") {
           msg.className =
             "px-4 py-2 rounded-lg max-w-[90%] break-words bg-gray-200 text-gray-700 text-xs italic mx-auto text-center";
+          const cleaned = text.replace(/【\d+:\d+†source】/g, "");
+          msg.innerHTML = marked.parse(cleaned);
         } else {
           // bot
           msg.className =
-            "px-4 py-2 rounded-lg max-w-[80%] break-words bg-blue-100 text-gray-800";
+            "prose prose-sm px-4 py-2 rounded-lg max-w-[80%] bg-blue-100 text-gray-800";
+          const cleaned = text.replace(/【\d+:\d+†source】/g, "");
+          msg.innerHTML = marked.parse(cleaned);
         }
-
-        msg.innerText = text;
         messages.appendChild(msg);
         messages.scrollTop = messages.scrollHeight;
         return msg;
@@ -133,10 +152,12 @@
             `http://localhost:8080/openai/chat-history?websiteId=${websiteId}`
           );
           if (!res.ok) throw new Error("Failed to fetch chats");
+
           const data = await res.json();
-          data.forEach((chat) => {
-            addMessage(chat.userMessage, "user");
-            addMessage(chat.aiResponse, "assistant");
+          if (!data?.messages) return;
+
+          data.messages.forEach((msg) => {
+            addMessage(msg.content, msg.role);
           });
           messages.scrollTop = messages.scrollHeight;
         } catch (err) {
@@ -147,9 +168,8 @@
       // Streaming Chat
       async function streamChat(userMessage) {
         const typingEl = addTypingIndicator();
-        let botMsgElement = null; // will create only after first chunk
         try {
-          const response = await fetch(
+          const res = await fetch(
             `http://localhost:8080/openai/chat-stream?websiteId=${websiteId}`,
             {
               method: "POST",
@@ -158,71 +178,32 @@
             }
           );
 
-          if (!response.ok || !response.body) {
-            throw new Error("Failed to connect to server");
+          if (res.status === 404) {
+            messages.replaceChild(
+              addMessage("Assistant not found for this website", "system"),
+              typingEl
+            );
+            return;
           }
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder("utf-8");
-          let buffer = "";
-          let fullText = "";
 
-          // Replace typing indicator with bot message container
-          // const botMsgElement = document.createElement("div");
-          // botMsgElement.className =
-          //   "px-4 py-2 rounded-lg max-w-[80%] bg-blue-100 text-gray-800 break-words";
-          // messages.replaceChild(botMsgElement, typingEl);
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-              buffer += decoder.decode();
-              break;
-            }
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-              if (!line.trim()) continue;
-              if (line.trim() === "data: [DONE]") {
-                return;
-              }
-              if (line.startsWith("data:")) {
-                const dataStr = line.replace(/^data:\s*/, "").trim();
-                try {
-                  const parsed = JSON.parse(dataStr);
-                  // const delta = parsed.choices?.[0]?.delta;
-                  if (parsed?.role === "system") {
-                    addMessage(parsed.content || "System message", "system");
-                  } else if (parsed.role === "assistant" && parsed?.content) {
-                    // create bot bubble on first content chunk
-                    if (!botMsgElement) {
-                      botMsgElement = document.createElement("div");
-                      botMsgElement.className =
-                        "px-4 py-2 rounded-lg max-w-[80%] bg-blue-100 text-gray-800 break-words";
-                      messages.replaceChild(botMsgElement, typingEl);
-                    }
-                    fullText += parsed.content;
-                    botMsgElement.innerText = fullText;
-                    messages.scrollTop = messages.scrollHeight;
-                  }
-                } catch (err) {
-                  console.log("Partial JSON skipped:", dataStr);
-                }
-              }
-            }
-          }
+          const data = await res.json();
+          const botMsgElement = document.createElement("div");
+          botMsgElement.className =
+            "px-4 py-2 rounded-lg max-w-[80%] bg-blue-100 text-gray-800 break-words";
+          botMsgElement.innerText = data.reply || "No response.";
+          messages.replaceChild(botMsgElement, typingEl);
+          messages.scrollTop = messages.scrollHeight;
         } catch (err) {
-          console.error("Stream error:", err);
+          console.error(err);
           messages.replaceChild(
-            addMessage("⚠️ Error receiving response.", "bot"),
+            addMessage("⚠️ Error receiving response.", "assistant"),
             typingEl
           );
         }
       }
 
       // Initial system greeting
-      addMessage("🤖 I am AI Assistant. How can I help you?", "system");
+      addMessage(welcomeMsg, "bot");
       // Load previous chats on page load
       loadPreviousChats();
       // Send button
