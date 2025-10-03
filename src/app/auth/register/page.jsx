@@ -4,7 +4,6 @@ import GoogleIcon from "@mui/icons-material/Google";
 import axios from "axios";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import login_img from "../../../../public/assets/images/login_page.webp";
 import Image from "next/image";
 
 export default function Register() {
