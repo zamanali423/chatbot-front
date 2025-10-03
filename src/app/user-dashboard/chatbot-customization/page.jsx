@@ -1,10 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2, Send, MessageCircle } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
-
 
 export default function ChatbotCustomization() {
   const [messages, setMessages] = useState(["I have a question"]);
@@ -12,10 +10,13 @@ export default function ChatbotCustomization() {
   const [newMsg, setNewMsg] = useState("");
   const [selectedColor, setSelectedColor] = useState("#2563eb");
   const [image, setImage] = useState("");
-  const params = useSearchParams();
-  const websiteUrl = params.get("website");
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const [chatbotName, setChatbotName] = useState("Chatbot");
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setWebsiteUrl(params.get("website") || "");
+  }, []);
   const addMessage = () => {
     if (newMsg.trim() !== "") {
       setMessages([...messages, newMsg]);
