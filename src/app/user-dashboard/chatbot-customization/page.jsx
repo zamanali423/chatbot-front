@@ -1,15 +1,7 @@
 "use client";
 import { useState } from "react";
-import {
-  Plus,
-  Trash2,
-  X,
-  ChevronLeft,
-  Menu,
-  Send,
-  MessageCircle,
-} from "lucide-react";
-import Sidebar from "../../pages/components/Sidebar";
+import { Plus, Trash2, Send, MessageCircle } from "lucide-react";
+import Sidebar from "@/components/Sidebar";
 import { useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 
@@ -52,8 +44,11 @@ export default function ChatbotCustomization() {
       bgColor: selectedColor,
       logoImage: image,
     };
-    localStorage.setItem("chatbot-customization", JSON.stringify(data));
-    toast.success("Customization saved successfully");
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("chatbot-customization", JSON.stringify(data));
+      toast.success("Customization saved successfully");
+    }
   };
 
   return (
