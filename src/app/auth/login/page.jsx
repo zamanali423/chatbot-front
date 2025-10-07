@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
   const router = useRouter();
@@ -58,6 +59,26 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSuccess = async (credentialResponse) => {
+    const idToken = credentialResponse.credential;
+
+    const { data } = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/google-login`,
+      {
+        idToken,
+      },
+      { withCredentials: true }
+    );
+
+    console.log("User logged in:", data);
+    localStorage.setItem("token", data.access_token);
+    router.push("/user-dashboard");
+  };
+
+  const handleError = () => {
+    console.error("Google login failed");
   };
 
   return (
@@ -143,6 +164,15 @@ export default function Login() {
               Register
             </a>
           </p>
+
+          <div className="mt-4">
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-2 px-4 transition"
+            >
+              <GoogleLogin onSuccess={handleSuccess} onError={handleError} />
+            </button>
+          </div>
         </div>
       </div>
 
