@@ -111,7 +111,7 @@ export default function VerifyOTP() {
 
       // Optionally redirect after success
       setTimeout(() => {
-        window.location.href = "/user-dashboard";
+        window.location.href = "/auth/login";
       }, 1200);
     } catch (err) {
       setError(err.message);

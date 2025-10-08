@@ -31,6 +31,8 @@ const Navbar = () => {
     };
   }, []);
 
+  console.log("islogIn",isLoggedIn)
+
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/pricing", label: "Product" },

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { GoogleLogin } from "@react-oauth/google";
+import { toast } from "react-toastify";
 
 export default function Login() {
   const router = useRouter();
@@ -64,6 +65,11 @@ export default function Login() {
   const handleSuccess = async (credentialResponse) => {
     const idToken = credentialResponse.credential;
 
+    if (!idToken) {
+      toast.error("Google login failed");
+      return;
+    }
+
     const { data } = await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/google-login`,
       {
@@ -73,7 +79,12 @@ export default function Login() {
     );
 
     console.log("User logged in:", data);
-    localStorage.setItem("token", data.access_token);
+    Cookies.set("token", data.access_token, {
+      expires: 1,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    localStorage.setItem("user", JSON.stringify(data.user));
     router.push("/user-dashboard");
   };
 
