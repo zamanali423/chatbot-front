@@ -133,6 +133,7 @@ export default function Dashboard() {
             refetch={refetch}
             setSelectedWebsite={setSelectedWebsite}
             setShowIntegrateLink={setShowIntegrateLink}
+            isBotloading={isBotloading}
             setisBotLoading={setisBotLoading}
             setWebsiteUrl={setWebsiteUrl}
           />

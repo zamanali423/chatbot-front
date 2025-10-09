@@ -1,4 +1,6 @@
 "use client";
+import { useState } from "react";
+import { RotateCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
@@ -8,27 +10,29 @@ export default function Dashboard({
   refetch,
   setSelectedWebsite,
   setShowIntegrateLink,
+  isBotloading,
   setisBotLoading,
   setWebsiteUrl,
 }) {
   const router = useRouter();
+  const [isSyncLoading, setIsSyncLoading] = useState(false);
 
-  const handleWebsiteIntegrateLink = (data) => {
+  const handleWebsiteIntegrateLink = (url) => {
     if (!scrapedData?.length) return alert("Please add a website link first.");
     setShowIntegrateLink(true);
-    setWebsiteUrl(data.url);
+    setWebsiteUrl(url);
   };
 
-  const handleCustomizeChatbot = (data) => {
+  const handleCustomizeChatbot = (url) => {
     if (!scrapedData?.length) return alert("Please add a website link first.");
-    router.push(`/user-dashboard/chatbot-customization?website=${data.url}`);
+    router.push(`/user-dashboard/chatbot-customization?website=${url}`);
   };
 
-  const handleCreateAssistant = async (data) => {
+  const handleCreateAssistant = async (url) => {
     try {
       setisBotLoading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/assistants/create?url=${data.url}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/assistants/create?url=${url}`,
         {
           method: "POST",
           headers: {
@@ -50,6 +54,67 @@ export default function Dashboard({
       setisBotLoading(false);
     }
   };
+
+  const handleSyncWebsite = async (websiteId) => {
+    try {
+      setIsSyncLoading(true);
+      toast.info("Syncing assistant data... Please wait.");
+
+      const scrapeResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/assistants/resync?websiteId=${websiteId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!scrapeResponse.ok) {
+        const errData = await scrapeResponse.json();
+        toast.error(errData.message || "Failed to sync website data.");
+        return;
+      }
+
+      toast.success("✅ Assistant synced successfully!");
+      await refetch();
+    } catch (error) {
+      console.error("❌ Sync error:", error);
+      toast.error("Something went wrong while syncing the assistant.");
+    } finally {
+      setIsSyncLoading(false);
+    }
+  };
+
+  // // 🧠 Helper function to update assistant
+  // const handleUpdateAssistant = async (websiteId) => {
+  //   try {
+  //     const response = await fetch(
+  //       `${process.env.NEXT_PUBLIC_API_URL}/assistants/update?websiteId=${websiteId}`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     if (!response.ok) {
+  //       const errData = await response.json();
+  //       console.error("❌ Assistant update failed:", errData.message);
+  //       return { ok: false };
+  //     }
+
+  //     console.log("✅ Assistant updated successfully.");
+  //     await refetch();
+  //     return { ok: true };
+  //   } catch (error) {
+  //     console.error("❌ Assistant update error:", error);
+  //     return { ok: false };
+  //   }
+  // };
 
   return (
     <div className="bg-white shadow-xl rounded-xl overflow-hidden">
@@ -293,7 +358,7 @@ export default function Dashboard({
                   {data?.status == "Live" ? (
                     <button
                       className="bg-green-100 text-green-600 px-3 py-1 rounded-md text-xs font-medium hover:bg-green-200 transition cursor-pointer"
-                      onClick={() => handleWebsiteIntegrateLink(data)}
+                      onClick={() => handleWebsiteIntegrateLink(data.url)}
                     >
                       Integrate
                     </button>
@@ -305,7 +370,7 @@ export default function Dashboard({
                           ? "opacity-50 cursor-not-allowed"
                           : "hover:bg-green-200"
                       } bg-green-100 text-green-600 px-3 py-1 rounded-md text-xs font-medium transition`}
-                      onClick={() => handleCreateAssistant(data)}
+                      onClick={() => handleCreateAssistant(data.url)}
                     >
                       {isBotloading ? "Creating..." : "Create Assistant"}
                     </button>
@@ -316,11 +381,24 @@ export default function Dashboard({
                   >
                     View Details
                   </button>
+                  <button
+                    className="flex gap-2 items-center bg-yellow-100 text-yellow-600 px-3 py-1 rounded-md text-xs font-medium hover:bg-yellow-200 cursor-pointer"
+                    onClick={() => handleSyncWebsite(data.url)}
+                  >
+                    {isSyncLoading ? (
+                      <RotateCw className="animate-spin" size={16} />
+                    ) : (
+                      <>
+                        <RotateCw className="h-4 w-4" />
+                        <span>Sync</span>
+                      </>
+                    )}
+                  </button>
                 </td>
                 <td className="py-3 px-6 text-center">
                   <button
                     className="bg-green-100 text-green-600 px-3 py-1 rounded-md text-xs font-medium hover:bg-green-200 transition cursor-pointer"
-                    onClick={() => handleCustomizeChatbot(data)}
+                    onClick={() => handleCustomizeChatbot(data.url)}
                   >
                     Customize Chatbot
                   </button>
