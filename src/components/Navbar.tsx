@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -60,7 +61,13 @@ const Navbar = () => {
       {/* Logo */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-[#2D5BE3] flex items-center justify-center shadow-md text-white font-bold">
-          S
+          <Image
+            src="/assets/images/logo_single.png"
+            alt="Logo"
+            width={100}
+            height={100}
+            className="w-full h-full object-contain"
+          />
         </div>
         <div>
           <div className="text-lg font-semibold">ScrapeChat</div>
