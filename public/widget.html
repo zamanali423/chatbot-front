@@ -149,7 +149,7 @@
       async function loadPreviousChats() {
         try {
           const res = await fetch(
-            `http://localhost:8080/openai/chat-history?websiteId=${websiteId}`
+            `https://gofernets.run.place/chatbot-backend/openai/chat-history?websiteId=${websiteId}`
           );
           if (!res.ok) throw new Error("Failed to fetch chats");
 
@@ -170,7 +170,7 @@
         const typingEl = addTypingIndicator();
         try {
           const res = await fetch(
-            `http://localhost:8080/openai/chat-stream?websiteId=${websiteId}`,
+            `https://gofernets.run.place/chatbot-backend/openai/chat-stream?websiteId=${websiteId}`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },

@@ -51,7 +51,7 @@
       // Open chatbot
       iframe = document.createElement("iframe");
       iframe.id = "chatbot-iframe";
-      iframe.src = `http://localhost:3000/widget.html?websiteId=${websiteId}`; // Change to production URL later
+      iframe.src = `https://chatbot-frontend-hazel-eta.vercel.app/widget.html?websiteId=${websiteId}`; // Change to production URL later
       iframe.style.position = "fixed";
       iframe.style.bottom = "90px"; // above button
       iframe.style.right = "20px";
