@@ -1,3 +1,4 @@
+"use client";
 import HeroSection from "../../components/home/HeroSection";
 import Integrations from "../../components/home/Integrations";
 import FeaturesSection from "../../components/home/FeaturesSection";
