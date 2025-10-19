@@ -10,6 +10,8 @@ import ShowWebsiteData from "./components/ShowWebsiteData";
 import AiThinkingLoader from "./components/AiThinkingLoader";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 const AllWebsitesData = dynamic(() => import("./components/AllWebsitesData"), {
   ssr: false,
@@ -81,36 +83,38 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Main Content */}
-      <main className="flex-1 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            Scraping Data
-          </h1>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setOpenForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition cursor-pointer"
-            >
-              Add New
-            </button>
-            {/* <button
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-100 flex">
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-semibold text-gray-800">
+              Scraping Data
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setOpenForm(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition cursor-pointer"
+              >
+                Add New
+              </button>
+              {/* <button
               onClick={handleWebsiteIntegrateLink}
               className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition cursor-pointer"
             >
               Integration Link
             </button> */}
+            </div>
           </div>
-        </div>
 
-        <CopyScriptSection
-          showIntegrateLink={showIntegrateLink}
-          setShowIntegrateLink={setShowIntegrateLink}
-          websiteUrl={websiteUrl}
-        />
+          <CopyScriptSection
+            showIntegrateLink={showIntegrateLink}
+            setShowIntegrateLink={setShowIntegrateLink}
+            websiteUrl={websiteUrl}
+          />
 
-        {/* {showIntegrateLink && scrapedData[scrapedData.length - 1] && (
+          {/* {showIntegrateLink && scrapedData[scrapedData.length - 1] && (
           <p className="text-center text-blue-600 font-semibold mb-6">
             Copy this link and paste in your website:{" "}
             <span
@@ -125,32 +129,34 @@ export default function Dashboard() {
             </span>
           </p>
         )} */}
-        {/* Responsive Table */}
-        <Suspense fallback={<Loader2 className="animate-spin" size={40} />}>
-          <AllWebsitesData
-            scrapedData={scrapedData}
-            token={token}
-            refetch={refetch}
+          {/* Responsive Table */}
+          <Suspense fallback={<Loader2 className="animate-spin" size={40} />}>
+            <AllWebsitesData
+              scrapedData={scrapedData}
+              token={token}
+              refetch={refetch}
+              setSelectedWebsite={setSelectedWebsite}
+              setShowIntegrateLink={setShowIntegrateLink}
+              isBotloading={isBotloading}
+              setisBotLoading={setisBotLoading}
+              setWebsiteUrl={setWebsiteUrl}
+            />
+          </Suspense>
+        </main>
+
+        {openForm && (
+          <ScrapingForm setOpenForm={setOpenForm} setLoading={setLoading} />
+        )}
+
+        {/* Detail Modal */}
+        {selectedWebsite && (
+          <ShowWebsiteData
+            selectedWebsite={selectedWebsite}
             setSelectedWebsite={setSelectedWebsite}
-            setShowIntegrateLink={setShowIntegrateLink}
-            isBotloading={isBotloading}
-            setisBotLoading={setisBotLoading}
-            setWebsiteUrl={setWebsiteUrl}
           />
-        </Suspense>
-      </main>
-
-      {openForm && (
-        <ScrapingForm setOpenForm={setOpenForm} setLoading={setLoading} />
-      )}
-
-      {/* Detail Modal */}
-      {selectedWebsite && (
-        <ShowWebsiteData
-          selectedWebsite={selectedWebsite}
-          setSelectedWebsite={setSelectedWebsite}
-        />
-      )}
-    </div>
+        )}
+      </div>
+      <Footer />
+    </>
   );
 }

@@ -142,7 +142,7 @@ useEffect(() => {
                 Login
               </button>
               <button
-                onClick={() => router.push("/auth/signup")}
+                onClick={() => router.push("/auth/register")}
                 className="text-sm font-medium text-white px-4 py-2 rounded-md cursor-pointer transition-all duration-300 bg-gradient-to-r from-[#DF00DB] to-[#7C3BED] hover:opacity-90"
               >
                 Sign Up

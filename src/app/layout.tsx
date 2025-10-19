@@ -31,12 +31,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#EEF2F6] text-[#212529] cz-shortcut-listen="true"`}
       >
-        <Navbar />
+        {/* <Navbar /> */}
         <ToastProvider />
         <main className="min-h-screen">
           <Providers>{children}</Providers>
         </main>
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );

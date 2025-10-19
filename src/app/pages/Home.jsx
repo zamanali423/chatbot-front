@@ -5,10 +5,13 @@ import FeaturesSection from "../../components/home/FeaturesSection";
 import LevelUpSection from "../../components/home/LevelUpSection";
 import CapabilitiesSection from "../../components/home/CapabilitiesSection";
 import PricingSection from "../../components/home/PricingSection";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const Home = () => {
   return (
     <>
+      <Navbar/>
       <section id="home">
         <HeroSection />
       </section>
@@ -32,6 +35,7 @@ const Home = () => {
         </section>
         <LevelUpSection />
       </div>
+      <Footer/>
     </>
   );
 };
