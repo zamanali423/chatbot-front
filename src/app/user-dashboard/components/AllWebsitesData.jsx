@@ -13,6 +13,7 @@ export default function Dashboard({
   isBotloading,
   setisBotLoading,
   setWebsiteUrl,
+  handleFileUpload,
 }) {
   const router = useRouter();
   const [isSyncLoading, setIsSyncLoading] = useState(false);
@@ -128,15 +129,15 @@ export default function Dashboard({
               <th className="py-4 px-6 text-left font-semibold">Email</th>
               <th className="py-4 px-6 text-left font-semibold">Phone</th>
               <th className="py-4 px-6 text-left font-semibold">Headlines</th>
-              <th className="py-4 px-6 text-left font-semibold">About</th>
+              {/* <th className="py-4 px-6 text-left font-semibold">About</th> */}
               <th className="py-4 px-6 text-left font-semibold">
                 Social Links
               </th>
-              <th className="py-4 px-6 text-left font-semibold">Slogen</th>
+              {/* <th className="py-4 px-6 text-left font-semibold">Slogen</th> */}
               <th className="py-4 px-6 text-left font-semibold">Website URL</th>
               <th className="py-4 px-6 text-left font-semibold">Category</th>
               <th className="py-4 px-6 text-left font-semibold">All Links</th>
-              <th className="py-4 px-6 text-left font-semibold">Portfolio</th>
+              {/* <th className="py-4 px-6 text-left font-semibold">Portfolio</th> */}
               <th className="py-4 px-6 text-left font-semibold">
                 Website Data
               </th>
@@ -168,6 +169,7 @@ export default function Dashboard({
                     {data?.status}
                   </div>
                 </td>
+
                 {/* Name */}
                 <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
                   <div className="overflow-x-auto whitespace-nowrap hide-scrollbar">
@@ -197,11 +199,11 @@ export default function Dashboard({
                 </td>
 
                 {/* About */}
-                <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
+                {/* <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
                   <div className="overflow-x-auto whitespace-nowrap hide-scrollbar">
                     {data.about ? data.about : "N/A"}
                   </div>
-                </td>
+                </td> */}
 
                 {/* Social links */}
                 <td className="py-4 px-6 font-medium text-blue-600 max-w-[250px]">
@@ -229,11 +231,11 @@ export default function Dashboard({
                 </td>
 
                 {/* Slogen */}
-                <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
+                {/* <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
                   <div className="overflow-x-auto whitespace-nowrap hide-scrollbar">
                     {data.slogan ? data.slogan : "N/A"}
                   </div>
-                </td>
+                </td> */}
 
                 {/* Website */}
                 <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
@@ -277,7 +279,7 @@ export default function Dashboard({
                 </td>
 
                 {/* Team */}
-                <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
+                {/* <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
                   <div className="overflow-x-auto whitespace-nowrap hide-scrollbar">
                     {data.team?.length > 0
                       ? data.team
@@ -345,7 +347,7 @@ export default function Dashboard({
                           ))
                       : "N/A"}
                   </div>
-                </td>
+                </td> */}
 
                 <td className="py-4 px-6 font-medium text-gray-800 max-w-[250px]">
                   <div className="overflow-x-auto whitespace-nowrap hide-scrollbar">
@@ -393,6 +395,12 @@ export default function Dashboard({
                         <span>Sync</span>
                       </>
                     )}
+                  </button>
+                  <button
+                    className="flex gap-2 items-center bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-xs font-medium hover:bg-blue-200 cursor-pointer"
+                    onClick={() => handleFileUpload(data?.url)}
+                  >
+                    Upload file
                   </button>
                 </td>
                 <td className="py-3 px-6 text-center">

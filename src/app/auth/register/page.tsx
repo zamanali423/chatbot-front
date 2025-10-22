@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Box,
   TextField,
@@ -20,87 +20,102 @@ import {
   FormControlLabel,
   Radio,
   Divider,
-} from '@mui/material'
+} from "@mui/material";
 import {
   Email as EmailIcon,
   Lock as LockIcon,
   Person as PersonIcon,
   Business as BusinessIcon,
   PersonAdd as PersonAddIcon,
-} from '@mui/icons-material'
-import { useRouter } from 'next/navigation'
-import { GoogleLogin } from '@react-oauth/google'
-import axios from 'axios'
-import Cookies from 'js-cookie'
-import { toast } from 'react-toastify'
+} from "@mui/icons-material";
+import { useRouter } from "next/navigation";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { toast } from "react-toastify";
 
-const steps = ['Account Details', 'Personal Information', 'Confirmation']
+const steps = ["Account Details", "Personal Information", "Confirmation"];
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [activeStep, setActiveStep] = useState(0)
+  const router = useRouter();
+  const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    company: '',
-    role: 'user',
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+    email: "",
+    password: "",
+    confirmPassword: "",
+    firstName: "",
+    lastName: "",
+    company: "N/A",
+    role: "user",
+  });
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  // -----------------------------
+  // ✅ Handle Input Change
+  // -----------------------------
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
-    setError('')
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
+  };
 
+  // -----------------------------
+  // ✅ Step Validation
+  // -----------------------------
   const validateStep = (step: number) => {
     switch (step) {
       case 0:
-        if (!formData.email || !formData.password || !formData.confirmPassword) {
-          setError('Please fill in all fields')
-          return false
+        if (
+          !formData.email ||
+          !formData.password ||
+          !formData.confirmPassword
+        ) {
+          setError("Please fill in all fields");
+          return false;
         }
         if (formData.password !== formData.confirmPassword) {
-          setError('Passwords do not match')
-          return false
+          setError("Passwords do not match");
+          return false;
         }
         if (formData.password.length < 8) {
-          setError('Password must be at least 8 characters')
-          return false
+          setError("Password must be at least 8 characters");
+          return false;
         }
-        break
+        return true;
+
       case 1:
         if (!formData.firstName || !formData.lastName) {
-          setError('Please fill in your name')
-          return false
+          setError("Please fill in your name");
+          return false;
         }
-        break
-    }
-    return true
-  }
+        return true;
 
+      default:
+        return true;
+    }
+  };
+
+  // -----------------------------
+  // ✅ Navigation Handlers
+  // -----------------------------
   const handleNext = () => {
-    if (validateStep(activeStep)) {
-      setActiveStep((prev) => prev + 1)
-    }
-  }
+    if (validateStep(activeStep)) setActiveStep((prev) => prev + 1);
+  };
 
-  const handleBack = () => {
-    setActiveStep((prev) => prev - 1)
-  }
+  const handleBack = () => setActiveStep((prev) => prev - 1);
 
+  // -----------------------------
+  // ✅ Submit Form
+  // -----------------------------
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateStep(activeStep)) return
+    e.preventDefault();
 
-    setLoading(true)
-    setError('')
+    if (!validateStep(activeStep)) return;
+
+    setLoading(true);
+    setError("");
 
     try {
       const { data, status } = await axios.post(
@@ -108,70 +123,68 @@ export default function RegisterPage() {
         {
           email: formData.email,
           password: formData.password,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
+          name: `${formData.firstName} ${formData.lastName}`,
           company: formData.company,
           role: formData.role,
         },
         { withCredentials: true }
-      )
+      );
 
       if (status === 201) {
-        router.push('/auth/login?message=Registration successful')
+        router.push(`/auth/verify-otp?email=${formData.email}`);
       } else {
-        setError(data?.message || 'Registration failed. Please try again.')
+        setError(data?.message || "Registration failed. Please try again.");
       }
-    } catch (error) {
-      console.log(error)
+    } catch (err: any) {
+      console.error(err);
       setError(
-        (error as any).response?.data?.message ||
-          'Registration failed. Please try again.'
-      )
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
-    const idToken = credentialResponse.credential
-
+  // -----------------------------
+  // ✅ Google Auth
+  // -----------------------------
+  const handleGoogleSuccess = async (credentialResponse: {
+    credential?: string;
+  }) => {
+    const idToken = credentialResponse.credential;
+    setGoogleLoading(true);
     if (!idToken) {
-      toast.error('Google registration failed')
-      return
+      toast.error("Google registration failed");
+      return;
     }
 
     try {
       const { data } = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/google-register`,
-        {
-          idToken,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          company: formData.company,
-          role: formData.role,
-        },
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/google-login`,
+        { idToken },
         { withCredentials: true }
-      )
+      );
 
-      console.log('User registered:', data)
-      Cookies.set('token', data.access_token, {
+      Cookies.set("token", data.access_token, {
         expires: 1,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-      })
-      localStorage.setItem('user', JSON.stringify(data.user))
-      router.push('/user-dashboard')
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      localStorage.setItem("user", JSON.stringify(data.user));
+      router.push("/user-dashboard");
     } catch (error) {
-      toast.error('Google registration failed')
-      console.error('Google registration error:', error)
+      toast.error("Google registration failed");
+      console.error("Google registration error:", error);
+    } finally {
+      setGoogleLoading(false);
     }
-  }
+  };
 
-  const handleGoogleError = () => {
-    console.error('Google registration failed')
-    toast.error('Google registration failed')
-  }
-
+  const handleGoogleError = () => toast.error("Google registration failed");
+  if (googleLoading) return <div>Loading...</div>;
+  // -----------------------------
+  // ✅ Render Step Content
+  // -----------------------------
   const renderStepContent = (step: number) => {
     switch (step) {
       case 0:
@@ -193,9 +206,7 @@ export default function RegisterPage() {
                   </InputAdornment>
                 ),
               }}
-              variant="outlined"
             />
-
             <TextField
               fullWidth
               label="Password"
@@ -212,9 +223,7 @@ export default function RegisterPage() {
                   </InputAdornment>
                 ),
               }}
-              variant="outlined"
             />
-
             <TextField
               fullWidth
               label="Confirm Password"
@@ -223,7 +232,6 @@ export default function RegisterPage() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
-              sx={{ mb: 2 }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -231,10 +239,9 @@ export default function RegisterPage() {
                   </InputAdornment>
                 ),
               }}
-              variant="outlined"
             />
           </>
-        )
+        );
 
       case 1:
         return (
@@ -245,7 +252,6 @@ export default function RegisterPage() {
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              required
               sx={{ mb: 3 }}
               InputProps={{
                 startAdornment: (
@@ -254,16 +260,13 @@ export default function RegisterPage() {
                   </InputAdornment>
                 ),
               }}
-              variant="outlined"
             />
-
             <TextField
               fullWidth
               label="Last Name"
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              required
               sx={{ mb: 3 }}
               InputProps={{
                 startAdornment: (
@@ -272,9 +275,7 @@ export default function RegisterPage() {
                   </InputAdornment>
                 ),
               }}
-              variant="outlined"
             />
-
             <TextField
               fullWidth
               label="Company/Organization (Optional)"
@@ -289,10 +290,8 @@ export default function RegisterPage() {
                   </InputAdornment>
                 ),
               }}
-              variant="outlined"
             />
-
-            <FormControl sx={{ mb: 2 }}>
+            <FormControl>
               <FormLabel>I am a:</FormLabel>
               <RadioGroup
                 name="role"
@@ -300,58 +299,72 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 row
               >
-                <FormControlLabel value="user" control={<Radio />} label="Individual" />
-                <FormControlLabel value="business" control={<Radio />} label="Business" />
-                <FormControlLabel value="developer" control={<Radio />} label="Developer" />
+                <FormControlLabel
+                  value="user"
+                  control={<Radio />}
+                  label="Individual"
+                />
+                <FormControlLabel
+                  value="business"
+                  control={<Radio />}
+                  label="Business"
+                />
+                <FormControlLabel
+                  value="developer"
+                  control={<Radio />}
+                  label="Developer"
+                />
               </RadioGroup>
             </FormControl>
           </>
-        )
+        );
 
       case 2:
         return (
-          <Box sx={{ textAlign: 'center', py: 2 }}>
+          <Box sx={{ textAlign: "center" }}>
             <Typography variant="h6" gutterBottom>
               Almost Done!
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               Please review your information before creating your account.
             </Typography>
-
-            <Box sx={{ textAlign: 'left', maxWidth: 400, mx: 'auto' }}>
-              <Typography variant="body2" gutterBottom>
+            <Box sx={{ textAlign: "left", maxWidth: 400, mx: "auto" }}>
+              <Typography variant="body2">
                 <strong>Email:</strong> {formData.email}
               </Typography>
-              <Typography variant="body2" gutterBottom>
+              <Typography variant="body2">
                 <strong>Name:</strong> {formData.firstName} {formData.lastName}
               </Typography>
-              <Typography variant="body2" gutterBottom>
-                <strong>Company:</strong> {formData.company || 'Not specified'}
+              <Typography variant="body2">
+                <strong>Company:</strong> {formData.company || "Not specified"}
               </Typography>
-              <Typography variant="body2" gutterBottom>
+              <Typography variant="body2">
                 <strong>Account Type:</strong> {formData.role}
               </Typography>
             </Box>
-
-            <Alert severity="info" sx={{ mt: 3, textAlign: 'left' }}>
-              By creating an account, you agree to our Terms of Service and Privacy Policy.
+            <Alert severity="info" sx={{ mt: 3 }}>
+              By creating an account, you agree to our Terms of Service and
+              Privacy Policy.
             </Alert>
           </Box>
-        )
+        );
 
       default:
-        return null
+        return null;
     }
-  }
+  };
 
+  // -----------------------------
+  // ✅ JSX Return
+  // -----------------------------
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #e91e63 0%, #1e3a8a 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #e91e63 0%, #1e3a8a 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         py: 4,
       }}
     >
@@ -360,44 +373,39 @@ export default function RegisterPage() {
           elevation={24}
           sx={{
             borderRadius: 4,
-            overflow: 'hidden',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            maxWidth: 600,
-            mx: 'auto',
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            overflow: "hidden",
           }}
         >
-          {/* Header */}
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #e91e63 0%, #1e3a8a 100%)',
+              background: "linear-gradient(135deg, #e91e63 0%, #1e3a8a 100%)",
               py: 4,
-              textAlign: 'center',
+              textAlign: "center",
             }}
           >
             <Typography
               variant="h3"
-              component="h1"
               sx={{
-                color: 'white',
-                fontWeight: 'bold',
+                color: "white",
+                fontWeight: "bold",
                 mb: 1,
-                background: 'linear-gradient(45deg, #ffffff 30%, #e3f2fd 90%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                background: "linear-gradient(45deg, #ffffff 30%, #e3f2fd 90%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
               }}
             >
-              Create Account
+              {loading ? "Creating Account..." : "Create Account"}
             </Typography>
-            <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+            <Typography variant="h6" sx={{ color: "rgba(255,255,255,0.9)" }}>
               Join our chatbot platform today
             </Typography>
           </Box>
 
+          {/* ✅ Form starts here */}
           <Box sx={{ p: 4 }}>
-            <Box sx={{ maxWidth: 500, mx: 'auto' }}>
-              {/* Stepper */}
+            <form onSubmit={handleSubmit}>
               <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
                 {steps.map((label) => (
                   <Step key={label}>
@@ -412,104 +420,98 @@ export default function RegisterPage() {
                 </Alert>
               )}
 
-              <form onSubmit={handleSubmit}>
-                {renderStepContent(activeStep)}
+              {renderStepContent(activeStep)}
 
-                {/* Navigation Buttons */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mt: 4,
+                  color: "white",
+                }}
+              >
+                <Button
+                  disabled={activeStep === 0 || loading}
+                  onClick={handleBack}
+                  variant="outlined"
+                >
+                  Back
+                </Button>
+
+                {activeStep === steps.length - 1 ? (
                   <Button
-                    disabled={activeStep === 0 || loading}
-                    onClick={handleBack}
-                    variant="outlined"
-                    sx={{ minWidth: 100 }}
-                  >
-                    Back
-                  </Button>
-
-                  {activeStep === steps.length - 1 ? (
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      disabled={loading}
-                      startIcon={!loading && <PersonAddIcon />}
-                      sx={{
-                        minWidth: 120,
-                        background: 'linear-gradient(45deg, #e91e63 30%, #1e3a8a 90%)',
-                        color: 'white',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #c2185b 30%, #1e40af 90%)',
-                        },
-                      }}
-                    >
-                      {loading ? 'Creating Account...' : 'Create Account'}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      onClick={handleNext}
-                      sx={{
-                        minWidth: 100,
-                        background: 'linear-gradient(45deg, #e91e63 30%, #1e3a8a 90%)',
-                        color: 'white',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #c2185b 30%, #1e40af 90%)',
-                        },
-                      }}
-                    >
-                      Next
-                    </Button>
-                  )}
-                </Box>
-              </form>
-
-              <Box sx={{ mt: 3, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  Already have an account?{' '}
-                  <Link
-                    href="/auth/login"
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    startIcon={!loading && <PersonAddIcon />}
                     sx={{
-                      color: 'primary.main',
-                      textDecoration: 'none',
-                      fontWeight: 'bold',
-                      '&:hover': {
-                        textDecoration: 'underline',
+                      background:
+                        "linear-gradient(45deg, #e91e63 30%, #1e3a8a 90%)",
+                      color: "white",
+                      "&:hover": {
+                        background:
+                          "linear-gradient(45deg, #c2185b 30%, #1e40af 90%)",
                       },
                     }}
                   >
-                    Sign In
-                  </Link>
-                </Typography>
+                    {loading ? "Creating..." : "Create Account"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{
+                      background:
+                        "linear-gradient(45deg, #e91e63 30%, #1e3a8a 90%)",
+                      color: "white",
+                      "&:hover": {
+                        background:
+                          "linear-gradient(45deg, #c2185b 30%, #1e40af 90%)",
+                      },
+                    }}
+                  >
+                    Next
+                  </Button>
+                )}
               </Box>
+            </form>
 
-              {/* Google Registration */}
-              <Box sx={{ mt: 4 }}>
-                <Divider sx={{ mb: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    OR
-                  </Typography>
-                </Divider>
-                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={handleGoogleError}
-                    theme="outline"
-                    size="large"
-                    text="signup_with"
-                    shape="rectangular"
-                  />
-                </Box>
+            {/* Footer Links */}
+            <Box sx={{ mt: 3, textAlign: "center" }}>
+              <Typography variant="body2">
+                Already have an account?{" "}
+                <Link href="/auth/login" sx={{ fontWeight: "bold" }}>
+                  Sign In
+                </Link>
+              </Typography>
+            </Box>
+
+            {/* Google Login */}
+            <Box sx={{ mt: 4 }}>
+              <Divider sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  OR
+                </Typography>
+              </Divider>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="outline"
+                  size="large"
+                  text="signup_with"
+                />
               </Box>
             </Box>
           </Box>
         </Paper>
 
-        {/* Footer */}
-        <Box sx={{ textAlign: 'center', mt: 4 }}>
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-            2024 Chatbot Platform. All rights reserved.
+        <Box sx={{ textAlign: "center", mt: 4 }}>
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.8)" }}>
+            © 2024 Chatbot Platform. All rights reserved.
           </Typography>
         </Box>
       </Container>
     </Box>
-  )
+  );
 }

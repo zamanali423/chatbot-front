@@ -58,8 +58,7 @@
       <div
         class="bg-blue-600 text-white text-center py-3 font-semibold"
         id="chatbotName"
-      >
-      </div>
+      ></div>
 
       <!-- Messages -->
       <div
@@ -97,7 +96,7 @@
       const customizationData = customization
         ? JSON.parse(customization)
         : null;
-      console.log(customizationData);
+      console.log("website customize", customizationData);
       let welcomeMsg =
         customizationData?.websiteUrl == websiteId
           ? customizationData.welcomeMsg
@@ -106,7 +105,13 @@
         customizationData?.websiteUrl == websiteId
           ? customizationData.chatbotName
           : "Chatbot";
+      let bgColor =
+        customizationData?.websiteUrl == websiteId
+          ? customizationData.bgColor
+          : "#3bc0e1";
       chatbotName.innerText = getChatbotName;
+      chatbotName.style.backgroundColor = bgColor;
+      sendBtn.style.backgroundColor = bgColor;
       // Add a message
       function addMessage(text, sender) {
         const msg = document.createElement("div");
@@ -114,6 +119,7 @@
         if (sender === "user") {
           msg.className =
             "px-4 py-2 rounded-lg max-w-[80%] break-words bg-blue-600 text-white ml-auto";
+          msg.style.backgroundColor = bgColor;
           msg.innerText = text;
         } else if (sender === "system") {
           msg.className =
@@ -145,9 +151,10 @@
         messages.scrollTop = messages.scrollHeight;
         return wrapper;
       }
-
+      console.log("websiteId before", websiteId);
       async function loadPreviousChats() {
         try {
+          console.log("websiteId", websiteId);
           const res = await fetch(
             `https://gofernets.run.place/chatbot-backend/openai/chat-history?websiteId=${websiteId}`
           );
@@ -187,11 +194,18 @@
           }
 
           const data = await res.json();
+          // messages.replaceChild(addMessage(data.reply, "bot"), typingEl);
+
           const botMsgElement = document.createElement("div");
           botMsgElement.className =
-            "px-4 py-2 rounded-lg max-w-[80%] bg-blue-100 text-gray-800 break-words";
-          botMsgElement.innerText = data.reply || "No response.";
+            "prose prose-sm px-4 py-2 rounded-lg max-w-[80%] bg-blue-100 text-gray-800 break-words";
+          const cleaned = (data.reply || "No response.").replace(
+            /【\d+:\d+†source】/g,
+            ""
+          );
+          botMsgElement.innerHTML = marked.parse(cleaned);
           messages.replaceChild(botMsgElement, typingEl);
+
           messages.scrollTop = messages.scrollHeight;
         } catch (err) {
           console.error(err);

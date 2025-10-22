@@ -34,6 +34,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -78,7 +79,7 @@ export default function LoginPage() {
 
   const handleSuccess = async (credentialResponse: { credential?: string }) => {
     const idToken = credentialResponse.credential
-
+    setGoogleLoading(true)
     if (!idToken) {
       toast.error('Google login failed')
       return
@@ -105,12 +106,17 @@ export default function LoginPage() {
       toast.error('Google login failed')
       console.error('Google login error:', error)
     }
+    finally {
+      setGoogleLoading(false)
+    }
   }
 
   const handleError = () => {
     console.error('Google login failed')
     toast.error('Google login failed')
   }
+
+   if (googleLoading) return <div>Loading...</div>;
 
   return (
     <Box

@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import ScrapingForm from "./components/ScrapingForm";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import CopyScriptSection from "./components/CopyScriptSection";
 import Cookies from "js-cookie";
 import ShowWebsiteData from "./components/ShowWebsiteData";
 import AiThinkingLoader from "./components/AiThinkingLoader";
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
+import UploadeFiles from "./components/UploadeFiles";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 
@@ -25,6 +26,7 @@ export default function Dashboard() {
   const [selectedWebsite, setSelectedWebsite] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isBotloading, setisBotLoading] = useState(false);
+  const [isFile, setIsFile] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -49,6 +51,12 @@ export default function Dashboard() {
       return data;
     },
   });
+
+  const handleFileUpload=(websiteUrl)=>{
+    setIsFile(true);
+    setWebsiteUrl(websiteUrl);
+    console.log("websiteUrl",websiteUrl);
+  }
 
   // ⛔ Avoid SSR mismatch
   if (!mounted) {
@@ -85,7 +93,7 @@ export default function Dashboard() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-100 flex">
+      <div className="min-h-screen bg-gray-100 flex mt-16">
         {/* Main Content */}
         <main className="flex-1 p-6">
           <div className="flex items-center justify-between mb-6">
@@ -100,11 +108,11 @@ export default function Dashboard() {
                 Add New
               </button>
               {/* <button
-              onClick={handleWebsiteIntegrateLink}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition cursor-pointer"
-            >
-              Integration Link
-            </button> */}
+                onClick={() => setIsFile(true)}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 transition cursor-pointer"
+              >
+                <Plus className="w-5 h-5" /> Upload Files
+              </button> */}
             </div>
           </div>
 
@@ -140,6 +148,7 @@ export default function Dashboard() {
               isBotloading={isBotloading}
               setisBotLoading={setisBotLoading}
               setWebsiteUrl={setWebsiteUrl}
+              handleFileUpload={handleFileUpload}
             />
           </Suspense>
         </main>
@@ -147,6 +156,7 @@ export default function Dashboard() {
         {openForm && (
           <ScrapingForm setOpenForm={setOpenForm} setLoading={setLoading} />
         )}
+        {isFile && <UploadeFiles setIsFile={setIsFile} websiteUrl={websiteUrl}/>}
 
         {/* Detail Modal */}
         {selectedWebsite && (

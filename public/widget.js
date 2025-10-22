@@ -3,7 +3,8 @@
   const websiteId = document.currentScript.getAttribute("data-website-id");
   const customization = localStorage.getItem("chatbot-customization");
   const customizationData = customization ? JSON.parse(customization) : null;
-  let bgColor = "#2D5BE3";
+  console.log("js",customizationData)
+  let bgColor = "#3bc0e1";
   let logoImage = `
   <svg xmlns="http://www.w3.org/2000/svg" 
        fill="none" viewBox="0 0 24 24" 
